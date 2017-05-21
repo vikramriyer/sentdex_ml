@@ -1,6 +1,7 @@
+#!/home/vikram/anaconda3/bin/python
+
 import pandas as pd
-import quandl
-import math
+import quandl, math, datetime
 
 #lec 1
 
@@ -40,23 +41,54 @@ from sklearn import preprocessing, cross_validation, svm
 from sklearn.linear_model import LinearRegression
 
 X = np.array(df.drop(['label'],1))
-y = np.array(df['label'])
 
 # scaling new values along with the old values helps in training and testing, adds up processing time
 X = preprocessing.scale(X)
 
-#X = X[:-forecast_out+1]
+X_lately = X[-forecast_out:]
+X = X[:-forecast_out:]
 
 y = np.array(df['label'])
+y = y[:-forecast_out]
 
-print len(X), len(y)
+#print len(X), len(y)
 
 X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
 
 clf = LinearRegression(n_jobs=10)
 clf.fit(X_train, y_train)
-print clf.score(X_test, y_test)
+#print clf.score(X_test, y_test)
 
-print forecast_out
+#print forecast_out
 
 #lec 5
+forecast_set = clf.predict(X_lately)
+
+print forecast_set
+
+import matplotlib.pyplot as plt
+from matplotlib import style
+
+style.use('ggplot')
+
+df['Forecast'] = np.nan
+
+last_date = df.iloc[-1].name
+print last_date
+last_unix = last_date.Timestamp
+one_day = 86400
+next_unix = last_unix + one_day
+
+for i in forecast_set:
+	next_date = datetime.datetime.fromtimestamp(next_unix)
+	next_unix += one_day
+	df.loc[next_date] = [ np.nan for _ in range(len(df.column)-1) ] + 1
+
+df['Adj. Close'].plot()
+df['Forecast'].plot()
+
+plt.legend(loc=4)
+plt.xlabel('Date')
+plt.ylabel('Price')
+
+plt.show()
