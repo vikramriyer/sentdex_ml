@@ -1,5 +1,3 @@
-#!/home/vikram/anaconda3/bin/python
-
 import pandas as pd
 import quandl, math, datetime
 
@@ -74,15 +72,15 @@ style.use('ggplot')
 df['Forecast'] = np.nan
 
 last_date = df.iloc[-1].name
-print last_date
-last_unix = last_date.Timestamp
+
+last_unix = last_date.value // 10**9
 one_day = 86400
 next_unix = last_unix + one_day
 
 for i in forecast_set:
 	next_date = datetime.datetime.fromtimestamp(next_unix)
 	next_unix += one_day
-	df.loc[next_date] = [ np.nan for _ in range(len(df.column)-1) ] + 1
+	df.loc[next_date] = [ np.nan for _ in range(len(df.columns)-1) ] + [i]
 
 df['Adj. Close'].plot()
 df['Forecast'].plot()
